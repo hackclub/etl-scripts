@@ -210,10 +210,16 @@ ORDER BY
   } catch (err) {
     console.error('Error executing query:', err.stack);
     errorOccurred = true; // Flag the error
+    process.exit(1); // Immediately exit with error code 1 for database errors
   } finally {
     console.log('Closing database connection.');
     await client.end();
     console.log('Database connection closed.');
+    
+    // If we haven't already exited due to a database error, check the errorOccurred flag
+    if (errorOccurred) {
+      process.exit(1);
+    }
   }
 }
 
