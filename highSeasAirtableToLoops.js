@@ -63,7 +63,8 @@ async function processRecords(records) {
                 highSeasDoubloonsEarned: (record.get(FIELD_MAPPINGS.doubloonsPaid) || 0) + 
                                        (record.get(FIELD_MAPPINGS.doubloonsGranted) || 0),
                 highSeasDoubloonsSpent: record.get(FIELD_MAPPINGS.doubloonsSpent),
-                highSeasDoubloonsBalance: record.get(FIELD_MAPPINGS.doubloonsBalance)
+                highSeasDoubloonsBalance: record.get(FIELD_MAPPINGS.doubloonsBalance),
+                highSeasLastSyncedFromAirtable: new Date().toISOString()
             };
 
             await updateLoopsContact(email, data);
