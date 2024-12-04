@@ -235,6 +235,9 @@ async function lookupAndUpdateUsers(userBatch, emailHeartbeatMap) {
     // Combine formulas with OR
     const filterFormula = `OR(${slackIdFormula}, ${emailFormula})`;
 
+    // Print the filter formula
+    console.log('Using Airtable filter formula:', filterFormula);
+
     // Perform Airtable lookup
     console.log(`Looking up Airtable records for batch of users...`);
     const airtableRecords = await base(airtableTableName).select({
