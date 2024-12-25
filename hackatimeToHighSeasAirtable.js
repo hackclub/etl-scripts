@@ -46,6 +46,9 @@ let errorOccurred = false;
 async function processRecords() {
   const client = new Client({
     connectionString: process.env.HACKATIME_DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false // Allow self-signed certificates
+    }
   });
 
   try {
