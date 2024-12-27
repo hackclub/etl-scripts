@@ -1,0 +1,6 @@
+# List only the extra libraries you need (exact versions optional, but recommended).
+# The Fivetran Connector SDK and requests are pre-installed in the Fivetran environment.
+# So DO NOT add `fivetran_connector_sdk` or `requests` here to avoid conflicts.
+
+python-dotenv==1.0.0
+requests>=2.31.0
