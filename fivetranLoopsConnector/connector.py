@@ -187,10 +187,10 @@ def schema(configuration):
     # Base schema with standard fields
     columns = {
         "email": "STRING",
-        "firstname": "STRING",
-        "lastname": "STRING",
-        "createdat": "UTC_DATETIME",
-        "updatedat": "UTC_DATETIME",
+        "first_name": "STRING",
+        "last_name": "STRING",
+        "created_at": "UTC_DATETIME",
+        "updated_at": "UTC_DATETIME",
         "unsubscribed": "BOOLEAN",
         "user_group": "STRING"
     }
@@ -247,10 +247,10 @@ def update(configuration, state):
     # Map standard fields (case-insensitive)
     standard_mapping = {
         "email": "email",
-        "firstName": "firstname",
-        "lastName": "lastname",
-        "createdAt": "createdat",
-        "updatedAt": "updatedat",
+        "firstName": "first_name",
+        "lastName": "last_name",
+        "createdAt": "created_at",
+        "updatedAt": "updated_at",
         "unsubscribed": "unsubscribed",
         "userGroup": "user_group"
     }
@@ -275,10 +275,10 @@ def update(configuration, state):
         # Start with standard fields
         record = {
             "email": row[field_indices["email"]] if "email" in field_indices else "",
-            "firstname": row[field_indices["firstname"]] if "firstname" in field_indices else "",
-            "lastname": row[field_indices["lastname"]] if "lastname" in field_indices else "",
-            "createdat": row[field_indices["createdat"]].replace('Z', '+00:00') if "createdat" in field_indices and row[field_indices["createdat"]] else None,
-            "updatedat": row[field_indices["updatedat"]].replace('Z', '+00:00') if "updatedat" in field_indices and row[field_indices["updatedat"]] else None,
+            "first_name": row[field_indices["first_name"]] if "first_name" in field_indices else "",
+            "last_name": row[field_indices["last_name"]] if "last_name" in field_indices else "",
+            "created_at": row[field_indices["created_at"]].replace('Z', '+00:00') if "created_at" in field_indices and row[field_indices["created_at"]] else None,
+            "updated_at": row[field_indices["updated_at"]].replace('Z', '+00:00') if "updated_at" in field_indices and row[field_indices["updated_at"]] else None,
             "unsubscribed": row[field_indices["unsubscribed"]].lower() == "true" if "unsubscribed" in field_indices else False,
             "user_group": row[field_indices["user_group"]] if "user_group" in field_indices else ""
         }
