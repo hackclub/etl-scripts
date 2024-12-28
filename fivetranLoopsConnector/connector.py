@@ -101,20 +101,34 @@ def download_loops_csv(download_url):
     resp.raise_for_status()
     return resp.content  # raw bytes
 
-def sanitize_field_name(field_name):
+def camel_to_snake_case(name):
+    """Convert camelCase to snake_case."""
+    pattern = re.compile(r'(?<!^)(?=[A-Z])')
+    return pattern.sub('_', name).lower()
+
+def sanitize_sql_name(name):
     """
-    Sanitize field names to be SQL-safe.
-    - Replace spaces and special characters with underscores
-    - Ensure it doesn't start with a number
-    - Convert to lowercase
+    Make a name SQL-safe by:
+    - Replacing special characters with underscores
+    - Ensuring it doesn't start with a number
+    - Converting to lowercase
     """
     # Replace any non-alphanumeric character with underscore
-    sanitized = re.sub(r'[^a-zA-Z0-9]', '_', field_name)
+    sanitized = re.sub(r'[^a-zA-Z0-9]', '_', name)
     # Ensure it doesn't start with a number
     if sanitized[0].isdigit():
         sanitized = 'f_' + sanitized
     # Convert to lowercase
     return sanitized.lower()
+
+def normalize_field_name(field_name):
+    """
+    Transform a field name into a normalized SQL-safe format by:
+    1. Converting from camelCase to snake_case
+    2. Sanitizing for SQL compatibility
+    """
+    snake_case = camel_to_snake_case(field_name)
+    return sanitize_sql_name(snake_case)
 
 def fetch_custom_fields(api_key):
     """
@@ -147,15 +161,15 @@ def fetch_custom_fields(api_key):
 
     for field in custom_fields:
         original_key = field["key"]
-        sanitized_key = sanitize_field_name(original_key)
+        normalized_key = normalize_field_name(original_key)
         loops_type = field["type"]
         
         # Store both the type and original name
-        field_types[sanitized_key] = {
+        field_types[normalized_key] = {
             "type": type_mapping.get(loops_type, "STRING"),
             "original_name": original_key
         }
-        field_mapping[original_key] = sanitized_key
+        field_mapping[original_key] = normalized_key
 
     return field_types, field_mapping
 
@@ -177,7 +191,8 @@ def schema(configuration):
         "lastname": "STRING",
         "createdat": "UTC_DATETIME",
         "updatedat": "UTC_DATETIME",
-        "unsubscribed": "BOOLEAN"
+        "unsubscribed": "BOOLEAN",
+        "user_group": "STRING"
     }
 
     # Add custom fields to schema
@@ -236,7 +251,8 @@ def update(configuration, state):
         "lastName": "lastname",
         "createdAt": "createdat",
         "updatedAt": "updatedat",
-        "unsubscribed": "unsubscribed"
+        "unsubscribed": "unsubscribed",
+        "userGroup": "user_group"
     }
     
     for original, sanitized in standard_mapping.items():
@@ -263,7 +279,8 @@ def update(configuration, state):
             "lastname": row[field_indices["lastname"]] if "lastname" in field_indices else "",
             "createdat": row[field_indices["createdat"]].replace('Z', '+00:00') if "createdat" in field_indices and row[field_indices["createdat"]] else None,
             "updatedat": row[field_indices["updatedat"]].replace('Z', '+00:00') if "updatedat" in field_indices and row[field_indices["updatedat"]] else None,
-            "unsubscribed": row[field_indices["unsubscribed"]].lower() == "true" if "unsubscribed" in field_indices else False
+            "unsubscribed": row[field_indices["unsubscribed"]].lower() == "true" if "unsubscribed" in field_indices else False,
+            "user_group": row[field_indices["user_group"]] if "user_group" in field_indices else ""
         }
         
         # Add custom fields
