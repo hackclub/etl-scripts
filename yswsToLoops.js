@@ -40,6 +40,7 @@ async function updateLoopsContact(loops, email, data) {
     console.log(`\n📝 Updating contact: ${email}`);
     console.log('Data to update:');
     console.log('- Weighted Grant Contribution:', data.weightedGrantContribution);
+    console.log('- 2025 Weighted Grant Contribution:', data.weighted2025GrantContribution);
     console.log('- First Stated Referral Reason:', truncatedReferralReason || '(none)');
     if (data.firstStatedReferralReason && data.firstStatedReferralReason.length > 490) {
       console.log(`⚠️ Referral reason truncated from ${data.firstStatedReferralReason.length} to 490 characters`);
@@ -50,6 +51,7 @@ async function updateLoopsContact(loops, email, data) {
       email,
       {
         calculatedYswsWeightedGrantContribution: data.weightedGrantContribution,
+        calculated2025YswsWeightedGrantContribution: data.weighted2025GrantContribution,
         calculatedYswsFirstStatedReferralReason: truncatedReferralReason,
         calculatedYswsFirstStatedReferralCategory: data.firstReferralReasonCategory || '',
         calculatedYswsLastUpdatedAt: new Date().toISOString()
@@ -110,18 +112,26 @@ const emailData = yswsProjects.reduce((acc, project) => {
   // Properly round to the nearest 0.1 to avoid floating-point issues
   const contribution = parseFloat((project['YSWS–Weighted Grant Contribution'] || 0).toFixed(1));
 
+  // Check if the project is from 2025
+  const projectDate = project['Created Time'] ? new Date(project['Created Time']) : null;
+  const is2025Project = projectDate && projectDate.getFullYear() === 2025;
+
   const referralReason = project['How did you hear about this?'];
   const referralCategory = project['Referral Reason'];
 
   if (!acc[email]) {
     acc[email] = {
       weightedGrantContribution: 0,
+      weighted2025GrantContribution: 0,
       firstStatedReferralReason: null,
       firstReferralReasonCategory: null
     };
   }
   
   acc[email].weightedGrantContribution += contribution;
+  if (is2025Project) {
+    acc[email].weighted2025GrantContribution += contribution;
+  }
 
   // Only set referral info if we don't have it yet and referralReason exists
   if (!acc[email].firstStatedReferralReason && referralReason) {
@@ -129,8 +139,9 @@ const emailData = yswsProjects.reduce((acc, project) => {
     acc[email].firstReferralReasonCategory = referralCategory;
   }
 
-  // Round the total contribution to the nearest 0.1 after accumulation
+  // Round the total contributions to the nearest 0.1 after accumulation
   acc[email].weightedGrantContribution = parseFloat(acc[email].weightedGrantContribution.toFixed(1));
+  acc[email].weighted2025GrantContribution = parseFloat(acc[email].weighted2025GrantContribution.toFixed(1));
 
   return acc;
 }, {});
