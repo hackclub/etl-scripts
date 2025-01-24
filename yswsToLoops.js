@@ -116,8 +116,6 @@ const emailData = yswsProjects.reduce((acc, project) => {
   const projectDate = project['Approved At'] ? new Date(project['Approved At']) : new Date(project['Created'])
   const is2025Project = projectDate && projectDate.getFullYear() === 2025;
 
-  console.log("IS 2025 PROJECT", is2025Project)
-
   const referralReason = project['How did you hear about this?'];
   const referralCategory = project['Referral Reason'];
 
