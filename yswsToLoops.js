@@ -110,7 +110,7 @@ const emailData = yswsProjects.reduce((acc, project) => {
   }
 
   // Properly round to the nearest 0.1 to avoid floating-point issues
-  const contribution = parseFloat((project['YSWS–Weighted Grant Contribution'] || 0).toFixed(1));
+  const contribution = parseFloat((project['YSWS–Weighted Project Contribution'] || 0).toFixed(1));
 
   // Check if the project is from 2025
   const projectDate = project['Approved At'] ? new Date(project['Approved At']) : new Date(project['Created'])
