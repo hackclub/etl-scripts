@@ -5,6 +5,7 @@ import io
 import urllib.request
 import requests
 import re
+import datetime
 
 # Fivetran Connector SDK import
 from fivetran_connector_sdk import Connector
@@ -209,6 +210,33 @@ def schema(configuration):
         }
     ]
 
+def sanitize_datetime(date_str):
+    """
+    Sanitize a datetime string to ensure it's in a valid format.
+    Returns None if the string can't be parsed or is in an invalid format.
+    """
+    if not date_str:
+        return None
+        
+    try:
+        # Handle special case with extreme future dates that have leading +
+        if date_str.startswith('+'):
+            log.warning(f"Found invalid date format: {date_str}, returning null")
+            return None
+            
+        # Check for other potential invalid date formats
+        year_part = date_str.split('-')[0]
+        if len(year_part) > 4 or int(year_part) > 9999:
+            log.warning(f"Found year outside valid range: {date_str}, returning null")
+            return None
+            
+        # Validate the format
+        datetime.datetime.strptime(date_str.replace('Z', '+00:00'), "%Y-%m-%dT%H:%M:%S.%f%z")
+        return date_str.replace('Z', '+00:00')
+    except (ValueError, IndexError) as e:
+        log.warning(f"Invalid datetime format: {date_str}, error: {str(e)}")
+        return None
+
 def update(configuration, state):
     """
     Main data sync function.
@@ -277,8 +305,8 @@ def update(configuration, state):
             "email": row[field_indices["email"]] if "email" in field_indices else "",
             "first_name": row[field_indices["first_name"]] if "first_name" in field_indices else "",
             "last_name": row[field_indices["last_name"]] if "last_name" in field_indices else "",
-            "created_at": row[field_indices["created_at"]].replace('Z', '+00:00') if "created_at" in field_indices and row[field_indices["created_at"]] else None,
-            "updated_at": row[field_indices["updated_at"]].replace('Z', '+00:00') if "updated_at" in field_indices and row[field_indices["updated_at"]] else None,
+            "created_at": sanitize_datetime(row[field_indices["created_at"]] if "created_at" in field_indices and row[field_indices["created_at"]] else None),
+            "updated_at": sanitize_datetime(row[field_indices["updated_at"]] if "updated_at" in field_indices and row[field_indices["updated_at"]] else None),
             "unsubscribed": row[field_indices["unsubscribed"]].lower() == "true" if "unsubscribed" in field_indices else False,
             "user_group": row[field_indices["user_group"]] if "user_group" in field_indices else ""
         }
@@ -293,7 +321,7 @@ def update(configuration, state):
                 elif field_type == "DOUBLE":
                     record[sanitized_name] = float(value) if value else None
                 elif field_type == "UTC_DATETIME":
-                    record[sanitized_name] = value.replace('Z', '+00:00') if value else None
+                    record[sanitized_name] = sanitize_datetime(value)
                 else:  # STRING
                     record[sanitized_name] = value
         
